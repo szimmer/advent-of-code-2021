@@ -1,0 +1,30 @@
+---
+title: "Day 1"
+author: "Stephanie Zimmer"
+date: "12/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+input1 <- read_table(here("Input", "input_01.txt"), col_names = "value")
+input1
+```
+
+```{r}
+input1 %>%
+  mutate(Inc=lag(value)<value) %>%
+  summarise(
+    Answer1=sum(Inc, na.rm=TRUE)
+  )
+```
+
+
