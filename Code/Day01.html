@@ -212,6 +212,19 @@ pre code {
 ##   Answer1
 ##     &lt;int&gt;
 ## 1    1548</code></pre>
+<pre class="r"><code>library(RcppRoll)
+
+tibble(
+  value3 = roll_sum(input1$value, 3)  
+) %&gt;%
+  mutate(Inc=lag(value3)&lt;value3) %&gt;%
+  summarise(
+    Answer1=sum(Inc, na.rm=TRUE)
+  )</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   Answer1
+##     &lt;int&gt;
+## 1    1589</code></pre>
 
 
 

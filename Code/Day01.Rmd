@@ -19,12 +19,27 @@ input1 <- read_table(here("Input", "input_01.txt"), col_names = "value")
 input1
 ```
 
-```{r}
+```{r part1}
 input1 %>%
   mutate(Inc=lag(value)<value) %>%
   summarise(
     Answer1=sum(Inc, na.rm=TRUE)
   )
+```
+
+```{r part2}
+library(RcppRoll)
+
+tibble(
+  value3 = roll_sum(input1$value, 3)  
+) %>%
+  mutate(Inc=lag(value3)<value3) %>%
+  summarise(
+    Answer1=sum(Inc, na.rm=TRUE)
+  )
+
+
+
 ```
 
 
