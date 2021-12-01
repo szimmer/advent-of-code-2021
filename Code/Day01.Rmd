@@ -2,7 +2,7 @@
 title: "Day 1"
 author: "Stephanie Zimmer"
 date: "12/1/2021"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -35,7 +35,7 @@ tibble(
 ) %>%
   mutate(Inc=lag(value3)<value3) %>%
   summarise(
-    Answer1=sum(Inc, na.rm=TRUE)
+    Answer2=sum(Inc, na.rm=TRUE)
   )
 
 
