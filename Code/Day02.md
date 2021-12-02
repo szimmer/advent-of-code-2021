@@ -81,3 +81,34 @@ input2 %>%
     ##   depth horiz     res
     ##   <dbl> <dbl>   <dbl>
     ## 1   908  1815 1648020
+
+# Part 2
+
+``` r
+input2 %>%
+  mutate(
+    aimmove=case_when(
+      direction=="down"~value,
+      direction=="up"~-value,
+      TRUE ~ 0
+    ),
+    aim=cumsum(aimmove),
+    xmove=case_when(
+      direction=="forward"~value,
+      TRUE ~ 0
+    ),
+    ymove=xmove*aim
+  ) %>%
+  summarise(
+    depth=sum(ymove),
+    horiz=sum(xmove)
+  ) %>%
+  mutate(
+    res=depth*horiz
+  )
+```
+
+    ## # A tibble: 1 x 3
+    ##    depth horiz        res
+    ##    <dbl> <dbl>      <dbl>
+    ## 1 969597  1815 1759818555

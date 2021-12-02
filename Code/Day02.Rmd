@@ -41,4 +41,30 @@ input2 %>%
     res=depth*horiz
   )
 ```
+# Part 2
+
+```{r part2}
+input2 %>%
+  mutate(
+    aimmove=case_when(
+      direction=="down"~value,
+      direction=="up"~-value,
+      TRUE ~ 0
+    ),
+    aim=cumsum(aimmove),
+    xmove=case_when(
+      direction=="forward"~value,
+      TRUE ~ 0
+    ),
+    ymove=xmove*aim
+  ) %>%
+  summarise(
+    depth=sum(ymove),
+    horiz=sum(xmove)
+  ) %>%
+  mutate(
+    res=depth*horiz
+  )
+
+```
 
