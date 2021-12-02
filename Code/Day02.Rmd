@@ -1,0 +1,44 @@
+---
+title: "Day 2"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+input2 <- read_table(here("Input", "input_02.txt"), 
+                     col_names = c("direction", "value"))
+input2
+```
+
+# Part 1
+
+```{r part1}
+input2 %>%
+  mutate(
+    ymove=case_when(
+      direction=="down"~value,
+      direction=="up"~-value,
+      TRUE ~ 0
+    ),
+    xmove=case_when(
+      direction=="forward"~value,
+      TRUE ~ 0
+    )
+  ) %>%
+  summarise(
+    depth=sum(ymove),
+    horiz=sum(xmove)
+  ) %>%
+  mutate(
+    res=depth*horiz
+  )
+```
+
