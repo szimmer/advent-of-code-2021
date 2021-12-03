@@ -138,3 +138,86 @@ read_diag_report(input)
     ##   gamma epsilon     ans
     ##   <int>   <int>   <int>
     ## 1  1565    2530 3959450
+
+# Part 2
+
+``` r
+filter_i <- function(inp, i, type=c("oxy", "co2")){
+  extdig <- inp %>%
+    mutate(inpi=str_sub(value, i, i))
+  
+  digtab <- extdig %>% count(inpi)
+  
+  if (nrow(digtab)==2){
+    n0 <- digtab %>% filter(inpi=="0") %>% pull(n)
+    n1 <- digtab %>% filter(inpi=="1") %>% pull(n)
+    if (n0 > n1){
+      comp <- "mostly0"
+    } else if (n1 > n0){
+      comp <- "mostly1"
+    } else{
+      comp <- "tie"
+    }
+  } else {
+    if (digtab$inpi=="0"){
+      comp <- "mostly0"
+    } else{
+      comp <- "mostly1"
+    }
+  }
+  
+  if (type=="oxy"){
+    if (comp %in% c("mostly1", "tie")){
+      sel <- "1"
+    } else{
+      sel <- "0"
+    }
+  } else if (type=="co2"){
+    if (nrow(digtab)==1){
+      sel <- digtab$inpi
+    } else if (comp %in% c("mostly1", "tie")){
+      sel <- "0"
+    } else{
+      sel <- "1"
+    }
+    
+  }
+  
+  extdig %>%
+    filter(inpi==sel) %>%
+    select(-inpi)
+}
+
+rating <- function(report){
+  ndig <- report %>% summarise(ndig=max(str_length(value))) %>% pull(ndig)
+  
+  tmpreport_oxy <- report
+  tmpreport_co2 <- report
+  
+  for (i in 1:ndig){
+    tmpreport_oxy <- filter_i(tmpreport_oxy, i, "oxy")
+    tmpreport_co2 <- filter_i(tmpreport_co2, i, "co2")
+  }
+  
+  tibble(oxy=strtoi(tmpreport_oxy$value, base=2),
+         co2=strtoi(tmpreport_co2$value, base=2)) %>%
+    mutate(ans=oxy*co2)
+  
+}
+
+rating(test)
+```
+
+    ## # A tibble: 1 x 3
+    ##     oxy   co2   ans
+    ##   <int> <int> <int>
+    ## 1    23    10   230
+
+``` r
+rating(input)
+```
+
+    ## # A tibble: 1 x 3
+    ##     oxy   co2     ans
+    ##   <int> <int>   <int>
+    ## 1  2039  3649 7440311
