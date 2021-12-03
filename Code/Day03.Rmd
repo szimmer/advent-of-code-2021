@@ -1,0 +1,66 @@
+---
+title: "Day 3"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+input <- read_table(here("Input", "input_03.txt"), 
+                     col_names = c("value"))
+input
+test <- read_table(here("Input", "test_03.txt"), 
+                     col_names = c("value"))
+test
+```
+
+# Part 1
+```{r part1}
+read_diag_report <- function(report){
+  ndig <- report %>% summarise(ndig=max(str_length(value))) %>% pull(ndig)
+  
+  meandigits <- report %>%
+    separate(value, into=str_c("X", 1:ndig), sep=1:(ndig-1), convert=TRUE) %>%
+    summarise(
+      across(starts_with("X"), mean)
+    )
+  
+  gamma_value <- meandigits %>%
+    mutate(
+      across(starts_with("X"), round),
+      across(starts_with("X"), as.character)
+      ) %>%
+    unite("gamma", starts_with("X"), sep="") %>%
+    mutate(
+      gamma=strtoi(gamma, base=2)
+    ) %>%
+    pull(gamma)
+  
+  epsilon_value <- meandigits %>%
+    mutate(
+      across(starts_with("X"), round),
+      across(starts_with("X"), ~1-.x),
+      across(starts_with("X"), as.character)
+      ) %>%
+    unite("epsilon", starts_with("X"), sep="") %>%
+    mutate(
+      epsilon=strtoi(epsilon, base=2)
+    ) %>%
+    pull(epsilon)
+  
+  tibble(gamma=gamma_value, epsilon=epsilon_value) %>%
+    mutate(ans=gamma*epsilon)
+} 
+
+read_diag_report(test)
+read_diag_report(input)
+
+```
+
