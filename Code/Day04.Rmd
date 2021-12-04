@@ -81,3 +81,52 @@ play_bingo(input_cc)
 
 ```
 
+
+# Day 2
+
+```{r day2}
+play_bingo_last <- function(cc){
+  calls <- cc$calls
+  cards <- cc$cards
+  punches <- vector("list", length(cards))
+  for (i in 1:length(punches)){
+    punches[[i]] <- matrix(FALSE, 5, 5)
+  }
+  bingo_check <- rep(FALSE, length(cards))
+  lastcard <- NULL
+  for (i in 1:length(calls)){
+    for (player in 1:length(cards)){
+      punch <- which(cards[[player]]==calls[[i]])
+      if (length(punch)>0){
+        punches[[player]][punch] <- TRUE
+      }
+      if( any(c(apply(punches[[player]], 1, sum),
+                apply(punches[[player]], 2, sum))==5)){
+        bingo_check[player] <- TRUE
+      }
+      
+      if (all(bingo_check) & is.null(lastcard)){
+        lastcard <- player
+        break
+      }
+    }
+    if (!is.null(lastcard)){
+      break
+    }
+    
+  }
+  lastcall <- calls[i]
+  losercard <- cards[[lastcard]]
+  loserpunch <- punches[[lastcard]]
+  unmarkedsum <- sum(losercard[!loserpunch])
+  return(list(card=losercard, punches=loserpunch,
+              lastcall=lastcall, unmarkedsum=unmarkedsum,
+              ans=lastcall*unmarkedsum))
+}
+
+play_bingo_last(test_cc)
+play_bingo_last(input_cc)
+
+
+```
+

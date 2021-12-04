@@ -142,3 +142,102 @@ play_bingo(input_cc)
     ## 
     ## $ans
     ## [1] 49860
+
+# Day 2
+
+``` r
+play_bingo_last <- function(cc){
+  calls <- cc$calls
+  cards <- cc$cards
+  punches <- vector("list", length(cards))
+  for (i in 1:length(punches)){
+    punches[[i]] <- matrix(FALSE, 5, 5)
+  }
+  bingo_check <- rep(FALSE, length(cards))
+  lastcard <- NULL
+  for (i in 1:length(calls)){
+    for (player in 1:length(cards)){
+      punch <- which(cards[[player]]==calls[[i]])
+      if (length(punch)>0){
+        punches[[player]][punch] <- TRUE
+      }
+      if( any(c(apply(punches[[player]], 1, sum),
+                apply(punches[[player]], 2, sum))==5)){
+        bingo_check[player] <- TRUE
+      }
+      
+      if (all(bingo_check) & is.null(lastcard)){
+        lastcard <- player
+        break
+      }
+    }
+    if (!is.null(lastcard)){
+      break
+    }
+    
+  }
+  lastcall <- calls[i]
+  losercard <- cards[[lastcard]]
+  loserpunch <- punches[[lastcard]]
+  unmarkedsum <- sum(losercard[!loserpunch])
+  return(list(card=losercard, punches=loserpunch,
+              lastcall=lastcall, unmarkedsum=unmarkedsum,
+              ans=lastcall*unmarkedsum))
+}
+
+play_bingo_last(test_cc)
+```
+
+    ## $card
+    ##      [,1] [,2] [,3] [,4] [,5]
+    ## [1,]    3   15    0    2   22
+    ## [2,]    9   18   13   17    5
+    ## [3,]   19    8    7   25   23
+    ## [4,]   20   11   10   24    4
+    ## [5,]   14   21   16   12    6
+    ## 
+    ## $punches
+    ##       [,1]  [,2] [,3]  [,4]  [,5]
+    ## [1,] FALSE FALSE TRUE  TRUE FALSE
+    ## [2,]  TRUE FALSE TRUE  TRUE  TRUE
+    ## [3,] FALSE FALSE TRUE FALSE  TRUE
+    ## [4,] FALSE  TRUE TRUE  TRUE  TRUE
+    ## [5,]  TRUE  TRUE TRUE FALSE FALSE
+    ## 
+    ## $lastcall
+    ## [1] 13
+    ## 
+    ## $unmarkedsum
+    ## [1] 148
+    ## 
+    ## $ans
+    ## [1] 1924
+
+``` r
+play_bingo_last(input_cc)
+```
+
+    ## $card
+    ##      [,1] [,2] [,3] [,4] [,5]
+    ## [1,]    5   89   55   46   96
+    ## [2,]   67   22   95   82   56
+    ## [3,]   61   94   84   99   28
+    ## [4,]   71   70   16   57   63
+    ## [5,]   98   92   86   73   83
+    ## 
+    ## $punches
+    ##       [,1] [,2]  [,3]  [,4]  [,5]
+    ## [1,]  TRUE TRUE  TRUE FALSE  TRUE
+    ## [2,] FALSE TRUE  TRUE  TRUE  TRUE
+    ## [3,]  TRUE TRUE  TRUE  TRUE  TRUE
+    ## [4,]  TRUE TRUE  TRUE  TRUE FALSE
+    ## [5,]  TRUE TRUE FALSE  TRUE  TRUE
+    ## 
+    ## $lastcall
+    ## [1] 94
+    ## 
+    ## $unmarkedsum
+    ## [1] 262
+    ## 
+    ## $ans
+    ## [1] 24628
