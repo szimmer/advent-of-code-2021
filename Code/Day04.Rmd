@@ -1,0 +1,83 @@
+---
+title: "Day 4"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+# input <- read_table(here("Input", "input_03.txt"), 
+#                     col_names = c("value"))
+# input
+# test <- read_table(here("Input", "test_03.txt"), 
+#                    col_names = c("value"))
+# test
+
+
+
+read_bingo <- function(fn){
+  calls <- scan(file=here("Input", fn), nlines=1, sep=",")
+  nl_file <- R.utils::countLines(here("Input", fn)) %>% as.numeric()
+  ncards <- (nl_file-1) / 6
+  read_card <- function(cardnum){
+    startrow <- 3+(cardnum-1)*6
+    scan(here("Input", fn), nlines=5, skip=startrow-1, quiet=TRUE) %>%
+      matrix(nrow=5, byrow=TRUE)
+  }
+  cards <- map(1:ncards, read_card)
+  return(list(calls=calls, cards=cards))
+}
+
+test_cc <- read_bingo("test_04.txt")
+input_cc <- read_bingo("input_04.txt")
+```
+
+# Day 1
+
+```{r day1}
+play_bingo <- function(cc){
+  calls <- cc$calls
+  cards <- cc$cards
+  punches <- vector("list", length(cards))
+  for (i in 1:length(punches)){
+    punches[[i]] <- matrix(FALSE, 5, 5)
+  }
+  bingo_check <- rep(FALSE, length(cards))
+  
+  for (i in 1:length(calls)){
+    for (player in 1:length(cards)){
+      punch <- which(cards[[player]]==calls[[i]])
+      if (length(punch)>0){
+        punches[[player]][punch] <- TRUE
+      }
+      if( any(c(apply(punches[[player]], 1, sum),
+                apply(punches[[player]], 2, sum))==5)){
+        bingo_check[player] <- TRUE
+      }
+    }
+    if (any(bingo_check)){
+      break
+    }
+  }
+  winner <- which(bingo_check)
+  lastcall <- calls[i]
+  winnercard <- cards[[winner]]
+  winnerpunch <- punches[[winner]]
+  unmarkedsum <- sum(winnercard[!winnerpunch])
+  return(list(card=winnercard, punches=winnerpunch,
+              lastcall=lastcall, unmarkedsum=unmarkedsum,
+              ans=lastcall*unmarkedsum))
+}
+
+play_bingo(test_cc)
+play_bingo(input_cc)
+
+```
+
