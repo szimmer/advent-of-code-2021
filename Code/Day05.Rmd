@@ -1,0 +1,74 @@
+---
+title: "Day 4"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+read_coords <- function(fn){
+  dat_in <- read_csv(
+    here("Input", fn), 
+    col_names=c("x1", "mid", "y2"), 
+    col_types = cols(
+      x1 = col_integer(),
+      mid = col_character(),
+      y2 = col_integer()
+    ))
+  
+  dat_in %>%
+    separate(mid, into=c("y1", "x2"), convert = TRUE)
+  
+}
+
+test_coord <- read_coords("test_05.txt")
+input_coord <- read_coords("input_05.txt")
+```
+
+# Day 1
+```{r day1}
+make_field <- function(coord){
+  coord_hv <- coord %>%
+    filter(x1==x2|y1==y2)
+  make_point_set <- function(x1, y1, x2, y2){
+    if (x1==x2){
+      y <- y1:y2 %>% sort
+      x <- rep(x1, length(y))
+      data.frame(x=x, y=y)
+    } else{
+      x <- x1:x2 %>% sort
+      y <- rep(y1, length(x))
+      data.frame(x=x, y=y)
+    }
+  }
+  
+  coord_set <-
+    coord_hv %>%
+    rowwise() %>%
+    mutate(ps=list(make_point_set(x1,y1,x2, y2))) %>%
+    unnest(col=ps) %>%
+    count(x, y)
+  
+  # p <- coord_set %>%
+  #   ggplot(aes(x=x, y=y, label=n)) +
+  #   geom_text() 
+  # 
+  # print(p)
+  
+  coord_set %>%
+    filter(n>=2) %>%
+    nrow()
+}
+
+make_field(test_coord)
+make_field(input_coord)
+
+```
+
