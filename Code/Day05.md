@@ -88,3 +88,52 @@ make_field(input_coord)
 ```
 
     ## [1] 5197
+
+# Part 2
+
+``` r
+make_field_wdiag <- function(coord){
+  make_point_set <- function(x1, y1, x2, y2){
+    if (x1==x2){
+      y <- y1:y2 %>% sort
+      x <- rep(x1, length(y))
+      data.frame(x=x, y=y)
+    } else if (y1==y2){
+      x <- x1:x2 %>% sort
+      y <- rep(y1, length(x))
+      data.frame(x=x, y=y)
+    } else{
+      x <- x1:x2
+      y <- y1:y2
+      data.frame(x=x, y=y)
+    }
+  }
+  
+  coord_set <-
+    coord %>%
+    rowwise() %>%
+    mutate(ps=list(make_point_set(x1,y1,x2, y2))) %>%
+    unnest(col=ps) %>%
+    count(x, y)
+  
+  # p <- coord_set %>%
+  #   ggplot(aes(x=x, y=y, label=n)) +
+  #   geom_text() 
+  # 
+  # print(p)
+  
+  coord_set %>%
+    filter(n>=2) %>%
+    nrow()
+}
+
+make_field_wdiag(test_coord)
+```
+
+    ## [1] 12
+
+``` r
+make_field_wdiag(input_coord)
+```
+
+    ## [1] 18605
