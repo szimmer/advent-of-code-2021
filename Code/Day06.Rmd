@@ -27,15 +27,24 @@ input_initpop <- read_pop("input_06.txt")
 # Part 1
 ```{r}
 gen_pop_next <- function(x){
-  n_new <- sum(x==0)
-  c(if_else(x>0, x-1, 6), rep(8, n_new))
+  n_new <- x %>% filter(timer==0) %>% pull(n)
+  
+  newx <- x %>% mutate(timer=if_else(timer>0, timer-1, 6)) %>%
+    add_row(timer=8, n=n_new)
+  
+  newx %>% count(timer, wt=n)
 }
 
-gen_pop <- function(x, days){
+gen_pop <- function(initpop, days){
+  x <- table(initpop) %>% as_tibble() %>% 
+    rename(timer=initpop) %>%
+    mutate(timer=as.integer(timer))
+  
   for (i in 1:days){
     x <- gen_pop_next(x)
   }
-  return(list(pop=x, npop=length(x)))
+  npop <- x %>% pull(n) %>% sum()
+  return(list(pop=x, npop=npop))
 }
 
 test18 <- gen_pop(test_initpop, 18)
@@ -45,5 +54,14 @@ test80$npop
 
 inp80 <- gen_pop(input_initpop, 80)
 inp80$npop
+```
+
+# Part 2
+```{r}
+test256 <- gen_pop(test_initpop, 256)
+test256$npop
+
+inp256 <- gen_pop(input_initpop, 256)
+formatC(inp256$npop, digits=13)
 ```
 
