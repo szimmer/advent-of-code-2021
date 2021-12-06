@@ -1,0 +1,49 @@
+---
+title: "Day 6"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+read_pop <- function(fn){
+  read_file(here("Input", fn)) %>%
+    str_split(",", simplify = TRUE) %>%
+    as.vector() %>%
+    as.integer()
+}
+
+test_initpop <-  read_pop("test_06.txt")
+input_initpop <- read_pop("input_06.txt")
+```
+
+# Part 1
+```{r}
+gen_pop_next <- function(x){
+  n_new <- sum(x==0)
+  c(if_else(x>0, x-1, 6), rep(8, n_new))
+}
+
+gen_pop <- function(x, days){
+  for (i in 1:days){
+    x <- gen_pop_next(x)
+  }
+  return(list(pop=x, npop=length(x)))
+}
+
+test18 <- gen_pop(test_initpop, 18)
+test80 <- gen_pop(test_initpop, 80)
+test18$npop
+test80$npop
+
+inp80 <- gen_pop(input_initpop, 80)
+inp80$npop
+```
+
