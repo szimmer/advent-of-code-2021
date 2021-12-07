@@ -1,0 +1,63 @@
+---
+title: "Day 7"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+read_pop <- function(fn){
+  read_file(here("Input", fn)) %>%
+    str_split(",", simplify = TRUE) %>%
+    as.vector() %>%
+    as.integer()
+}
+
+test_pos <-  read_pop("test_07.txt")
+input_pos <- read_pop("input_07.txt")
+```
+
+# Part 1
+
+```{r part1}
+best_pos <- function(x){
+  f <- function(a, x){
+    sum(abs(a-x))
+  }
+  optimize(f, range(x), x=x)  
+}
+best_pos(test_pos)
+best_pos(input_pos)
+
+
+```
+
+# Part 2
+
+
+```{r part2}
+
+best_pos2 <- function(x){
+  fcost <- function(a, x){
+    diff <- abs(a-x)
+    cost <- diff*(diff+1)/2
+    sum(cost)
+  }
+  
+  best_nonint <- optimize(fcost, range(x), x=x)  
+  print(best_nonint)
+  min(fcost(floor(best_nonint$minimum), x),
+      fcost(ceiling(best_nonint$minimum), x))
+}
+
+best_pos2(test_pos)
+best_pos2(input_pos)
+```
+
