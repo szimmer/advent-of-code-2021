@@ -1,0 +1,74 @@
+---
+title: "Day 7"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+library(index0)
+```
+
+```{r read1}
+read_dig <- function(fn){
+  df1 <- read_delim(
+    here("Input", fn),
+    delim="|",
+    col_names = c("X", "Y"),
+    col_types = cols(.default=col_character()),
+    trim_ws = TRUE)
+  
+  dfx <- df1 %>%
+    select(Value=X) %>%
+    mutate(Row=row_number()) %>%
+    separate_rows(Value) %>%
+    group_by(Row) %>%
+    mutate(Digit=row_number()) %>%
+    ungroup() %>%
+    select(Row, Digit, Value) %>%
+    mutate(Type="Dig10")
+  
+  dfy <- df1 %>%
+    select(Value=Y) %>%
+    mutate(Row=row_number()) %>%
+    separate_rows(Value) %>%
+    group_by(Row) %>%
+    mutate(Digit=row_number()) %>%
+    ungroup() %>%
+    select(Row, Digit, Value) %>%
+    mutate(Type="Output")
+  
+  bind_rows(dfx, dfy)
+}
+
+test_dig <-  read_dig("test_08.txt")
+input_dig <- read_dig("input_08.txt")
+```
+
+
+# Part 1
+
+```{r}
+digs <- as.index0(c("abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg"))
+str_length(digs)
+
+count_1478 <- function(digdat){
+  dig_1478 <- digs[c(1,4,7,8)]
+  n_1478 <- str_length(dig_1478)
+  digdat %>%
+    filter(Type=="Output") %>%
+    mutate(
+      ndig=str_length(Value),
+      val_1478=ndig %in% n_1478
+    ) %>%
+    summarise(ans=sum(val_1478))
+}
+count_1478(test_dig)
+count_1478(input_dig)
+
+```
+
