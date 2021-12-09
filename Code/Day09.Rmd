@@ -1,0 +1,66 @@
+---
+title: "Day 8"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+read_flows <- function(fn){
+  tabinit <- read_table(here("Input", fn), 
+                        col_names = FALSE, 
+                        col_types = cols(.default = col_character()))
+  nc <- tabinit %>% slice(1) %>% pull(X1) %>% str_length()
+  tabinit %>%
+    separate(X1, into=str_c("Y", 1:nc), sep=1:(nc-1), convert = TRUE) %>%
+    as.matrix()
+}
+flows_test <- read_flows("test_09.txt")
+flows_input <- read_flows("input_09.txt")
+
+```
+
+# Part 1
+
+```{r part1}
+
+calc_risk <- function(flows){
+  nr <- nrow(flows)
+  nc <- ncol(flows)
+  checknbr <- function(r, c){
+    n1 <- ifelse(between(c-1, 1, nc), flows[r, c-1], NA_real_)
+    n2 <- ifelse(between(c+1, 1, nc), flows[r, c+1], NA_real_)
+    n3 <- ifelse(between(r-1, 1, nr), flows[r-1, c], NA_real_)
+    n4 <- ifelse(between(r+1, 1, nr), flows[r+1, c], NA_real_)
+    nbrs <- c(n1, n2, n3, n4)
+    if (all(flows[r,c]<nbrs, na.rm=TRUE)){
+      return(flows[r, c])
+    } else{
+      return(NA)
+    }
+  }
+  crossing(r=1:nr, c=1:nc) %>%
+    rowwise() %>%
+    mutate(
+      lowpoint=checknbr(r, c),
+      Risk=lowpoint+1
+    ) %>%
+    ungroup() %>%
+    summarise(
+      ans=sum(Risk, na.rm=TRUE)
+    )
+  
+}
+
+calc_risk(flows_test)
+calc_risk(flows_input)
+
+```
+
