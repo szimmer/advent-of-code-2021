@@ -75,3 +75,47 @@ nav_input %>% map_dbl(calc_corrupt_pts) %>% sum()
 ```
 
     ## [1] 216297
+
+# Part 2
+
+``` r
+calc_incomplete_pts <- function(x){
+  done <- FALSE
+  xprev <- x
+  while (!done){
+    xnext <- str_remove_all(xprev, "\\(\\)|\\{\\}|\\[\\]|\\<\\>")
+    if (xnext==xprev){
+      done <- TRUE
+    } else{
+      xprev <- xnext
+    }
+  }
+  
+  xclosed <- str_remove_all(xnext, "\\(|\\{|\\[|\\<")
+  if (str_length(xclosed)>0) return(NA)
+  
+  xcomp <- stringi::stri_reverse(xnext)
+  xcvals <- xcomp %>%
+    str_replace_all("\\(", "1") %>%
+    str_replace_all("\\[", "2") %>%
+    str_replace_all("\\{", "3") %>%
+    str_replace_all("\\<", "4") 
+  xvals <- str_split(xcvals, "", simplify = TRUE) %>% as.numeric()
+  
+  score <- 0
+  for (i in 1:length(xvals)){
+    score <- 5*score+xvals[i]
+  }
+  return(score)
+}
+
+nav_test %>% map_dbl(calc_incomplete_pts) %>% median(na.rm=TRUE)
+```
+
+    ## [1] 288957
+
+``` r
+nav_input %>% map_dbl(calc_incomplete_pts) %>% median(na.rm=TRUE)
+```
+
+    ## [1] 2165057169
