@@ -46,21 +46,122 @@ calc_risk <- function(flows){
       return(NA)
     }
   }
-  crossing(r=1:nr, c=1:nc) %>%
+  lowpts <- crossing(r=1:nr, c=1:nc) %>%
     rowwise() %>%
     mutate(
       lowpoint=checknbr(r, c),
       Risk=lowpoint+1
     ) %>%
     ungroup() %>%
+    filter(!is.na(Risk))
+  
+  cat(str_c("Number low points: ", nrow(lowpts)), "\n")
+  
+  ans <- lowpts %>%
     summarise(
       ans=sum(Risk, na.rm=TRUE)
-    )
+    ) %>%
+    pull(ans)
   
+  cat(str_c("Risk: ", ans), "\n")
+  return(lowpts)
 }
 
-calc_risk(flows_test)
-calc_risk(flows_input)
+lowpt_test <- calc_risk(flows_test)
+lowpt_input <- calc_risk(flows_input)
+
+```
+
+# Part 2
+```{r}
+basin_size <- function(flows){
+  nr <- nrow(flows)
+  nc <- ncol(flows)
+  
+  flows_na <- flows
+  flows_na[flows_na==9] <- NA
+  
+  gps <- vector("list", length=nr*nc)
+  gpcnt <- 0
+  for (i in 1:(nr*nc)){
+    if (!is.na(flows_na[i])){
+      ai <- arrayInd( i, dim(flows_na)) 
+      r <- ai[1]
+      c <- ai[2]
+      tmpnb <- i
+      if (between(c-1, 1, nc) && !is.na(flows_na[r, c-1])){
+        tmpnb <- c(tmpnb, (c-2)*nr+r)
+      }
+      if(between(c+1, 1, nc) && !is.na(flows_na[r, c+1])){
+        tmpnb <- c(tmpnb, c*nr+r)
+      } 
+      if(between(r-1, 1, nr) && !is.na(flows_na[r-1, c])){
+        tmpnb <- c(tmpnb, (c-1)*nr + r-1)
+      } 
+      if (between(r+1, 1, nr)&&!is.na(flows_na[r+1, c])){
+        tmpnb <- c(tmpnb, (c-1)*nr + r+1)
+      }
+      
+      ingp <- FALSE
+      if (gpcnt >0){
+        for (gp in 1:gpcnt){
+          if (any(tmpnb %in% gps[[gp]])){
+            gps[[gp]] <- sort(unique(c(gps[[gp]], tmpnb)))
+            ingp <- TRUE
+            break
+          }
+        }    
+      }
+      
+      if (!ingp){
+        gpcnt <- gpcnt + 1
+        gps[[gpcnt]] <- tmpnb
+      }
+    }
+    
+    
+    
+  }
+  
+  gpsize <- map_int(gps, length) %>%
+    sort(decreasing = TRUE)
+  
+  ngps <- sum(gpsize>0)
+  
+  gps <- gps[1:ngps]
+  
+  flows_shadow <- matrix(NA, nrow=nr, ncol=nc)
+  
+  gpdf <- NULL
+  
+  for (i in 1:ngps){
+    flows_shadow[gps[[i]]] <- i
+    gpdfi <- arrayInd(gps[[i]], dim(flows_na))  %>%
+      as.data.frame() %>%
+      set_names(c("r", "c")) %>%
+      as_tibble() %>%
+      mutate(Gp=i)
+    gpdf <- rbind(gpdf, gpdfi)
+  }
+  
+  lowpt <- calc_risk(flows)
+  
+  gpdf %>%
+    left_join(lowpt, by=c("r", "c")) %>%
+    mutate(
+      LP=!is.na(lowpoint),
+      Gp=as.factor(Gp)
+      ) %>%
+    ggplot(aes(x=r, y=c, colour=Gp, shape=LP))+
+    geom_point() +
+    scale_y_reverse()+
+    theme(legend.position = "none")
+  
+  prod(gpsize[1:3])
+}
+
+basin_size(flows_test) # this works
+basin_size(flows_input) # this is wrong!!! 768240
 
 ```
 

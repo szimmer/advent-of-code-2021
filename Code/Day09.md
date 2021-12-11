@@ -54,13 +54,18 @@ calc_risk <- function(flows){
       return(NA)
     }
   }
-  crossing(r=1:nr, c=1:nc) %>%
+  lowpts <- crossing(r=1:nr, c=1:nc) %>%
     rowwise() %>%
     mutate(
       lowpoint=checknbr(r, c),
       Risk=lowpoint+1
     ) %>%
     ungroup() %>%
+    filter(!is.na(Risk))
+  
+  cat(str_c("Number low points: ", nrow(lowpts)))
+  
+  lowpts %>%
     summarise(
       ans=sum(Risk, na.rm=TRUE)
     )
@@ -69,6 +74,8 @@ calc_risk <- function(flows){
 
 calc_risk(flows_test)
 ```
+
+    ## Number low points: 4
 
     ## # A tibble: 1 x 1
     ##     ans
@@ -79,7 +86,86 @@ calc_risk(flows_test)
 calc_risk(flows_input)
 ```
 
+    ## Number low points: 242
+
     ## # A tibble: 1 x 1
     ##     ans
     ##   <dbl>
     ## 1   572
+
+# Part 2
+
+``` r
+basin_size <- function(flows){
+  nr <- nrow(flows)
+  nc <- ncol(flows)
+  
+  flows_na <- flows
+  flows_na[flows_na==9] <- NA
+  
+  gps <- vector("list", length=nr*nc)
+  gpcnt <- 0
+  for (i in 1:(nr*nc)){
+    if (!is.na(flows_na[i])){
+      ai <- arrayInd( i, dim(flows_na)) 
+      r <- ai[1]
+      c <- ai[2]
+      tmpnb <- i
+      if (between(c-1, 1, nc) && !is.na(flows_na[r, c-1])){
+        tmpnb <- c(tmpnb, (c-2)*nr+r)
+      }
+      if(between(c+1, 1, nc) && !is.na(flows_na[r, c+1])){
+        tmpnb <- c(tmpnb, c*nr+r)
+      } 
+      if(between(r-1, 1, nr) && !is.na(flows_na[r-1, c])){
+        tmpnb <- c(tmpnb, (c-1)*nr + r-1)
+      } 
+      if (between(r+1, 1, nr)&&!is.na(flows_na[r+1, c])){
+        tmpnb <- c(tmpnb, (c-1)*nr + r+1)
+      }
+      
+      ingp <- FALSE
+      if (gpcnt >0){
+        for (gp in 1:gpcnt){
+          if (any(tmpnb %in% gps[[gp]])){
+            gps[[gp]] <- sort(unique(c(gps[[gp]], tmpnb)))
+            ingp <- TRUE
+            break
+          }
+        }    
+      }
+      
+      if (!ingp){
+        gpcnt <- gpcnt + 1
+        gps[[gpcnt]] <- tmpnb
+      }
+    }
+    
+    
+    
+  }
+  
+  gpsize <- map_int(gps, length) %>%
+    sort(decreasing = TRUE)
+  
+  ngps <- sum(gpsize>0)
+  
+  flows_shadow <- matrix(NA, nrow=nr, ncol=nc)
+  
+  for (i in 1:ngps){
+    flows_shadow[gps[[i]]] <- i
+  }
+  
+  prod(gpsize[1:3])
+}
+
+basin_size(flows_test) # this works
+```
+
+    ## [1] 1134
+
+``` r
+basin_size(flows_input) # this is wrong!!! 768240
+```
+
+    ## [1] 768240
