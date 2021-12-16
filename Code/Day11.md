@@ -110,3 +110,51 @@ flash_dance(oct_input, 100)
     ##  [8,]    3    6    3    3    2    5    3    2    2     2
     ##  [9,]    3    6    0    0    7    5    4    4    3     8
     ## [10,]    3    0    0    0    0    4    0    0    8     6
+
+# Part 2
+
+``` r
+flash_dance_all <- function(oct){
+  # Initialize
+  step <- flashcount <- 0
+  nr <- nrow(oct)
+  nc <- ncol(oct)
+  
+  allflash <- FALSE
+  
+  while (!allflash){
+    # Increase by 1
+    oct <- oct+1
+    flashprev <- flash <- matrix(0, nrow=nrow(oct), ncol=ncol(oct))
+    
+    # Find flashes
+    flash[oct>9] <- 1
+    
+    while (any(flash != flashprev)){
+      find <- which(flash!=flashprev, arr.ind = TRUE)
+      flashprev <- flash
+      for (i in 1:nrow(find)){
+        nb_rows <- max(find[i, 1]-1, 1):min(find[i, 1]+1, nr)
+        nb_cols <- max(find[i, 2]-1, 1):min(find[i, 2]+1, nc)
+        oct[nb_rows, nb_cols] <- oct[nb_rows, nb_cols] + 1
+      }
+      flash[oct>9] <- 1
+    }
+    
+    oct[oct>9] <- 0
+    step <- step + 1
+    if (all(flash==1)) return(step)
+  }
+  
+}
+
+flash_dance_all(oct_test)
+```
+
+    ## [1] 195
+
+``` r
+flash_dance_all(oct_input)
+```
+
+    ## [1] 290
