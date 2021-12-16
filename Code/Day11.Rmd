@@ -1,0 +1,72 @@
+---
+title: "Day 11"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(here)
+```
+
+```{r read1}
+read_oct <- function(fn){
+  tabinit <- read_table(here("Input", fn), 
+                        col_names = FALSE, 
+                        col_types = cols(.default = col_character()))
+  nc <- tabinit %>% slice(1) %>% pull(X1) %>% str_length()
+  m <- tabinit %>%
+    separate(X1, into=str_c("Y", 1:nc), sep=1:(nc-1), convert = TRUE) %>%
+    as.matrix()
+  colnames(m) <- NULL
+  return(m)
+}
+oct_test <- read_oct("test_11.txt")
+oct_input <- read_oct("input_11.txt")
+
+```
+
+# Part 1
+
+```{r part1}
+
+flash_dance <- function(oct, steps){
+  # Initialize
+  flashcount <- 0
+  nr <- nrow(oct)
+  nc <- ncol(oct)
+  
+  for (step in 1:steps){
+    # Increase by 1
+    oct <- oct+1
+    flashprev <- flash <- matrix(0, nrow=nrow(oct), ncol=ncol(oct))
+    
+    # Find flashes
+    flash[oct>9] <- 1
+    
+    while (any(flash != flashprev)){
+      find <- which(flash!=flashprev, arr.ind = TRUE)
+      flashprev <- flash
+      for (i in 1:nrow(find)){
+        nb_rows <- max(find[i, 1]-1, 1):min(find[i, 1]+1, nr)
+        nb_cols <- max(find[i, 2]-1, 1):min(find[i, 2]+1, nc)
+        oct[nb_rows, nb_cols] <- oct[nb_rows, nb_cols] + 1
+      }
+      flash[oct>9] <- 1
+    }
+    
+    oct[oct>9] <- 0
+    flashcount <- flashcount + sum(flash)
+  }
+  return(list(flashcount=flashcount, field=oct))
+}
+
+flash_dance(oct_test, 100)
+flash_dance(oct_input, 100)
+
+
+```
+
